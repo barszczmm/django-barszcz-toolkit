@@ -18,9 +18,18 @@ class PILThumbnailerImageField(ImageField):
         del kwargs['resize_source']
         super(PILThumbnailerImageField, self).__init__(*args, **kwargs)
 
+    def south_field_triple(self):
+        """
+        Return a suitable description of this field for South.
+        """
+        from south.modelsinspector import introspector
+        field_class = 'django.db.models.fields.files.FileField'
+        args, kwargs = introspector(self)
+        return (field_class, args, kwargs)
+
     def pre_save(self, model_instance, add):
         file = super(PILThumbnailerImageField, self).pre_save(model_instance, add)
-        if self.resize_source and (file.width != self.resize_source['size'][0] or file.height != self.resize_source['size'][1]):
+        if file and self.resize_source and (file.width != self.resize_source['size'][0] or file.height != self.resize_source['size'][1]):
             file_fullpath = os.path.join(settings.MEDIA_ROOT, file.name)
             self._resize_image(file_fullpath, self.resize_source)
         return file
